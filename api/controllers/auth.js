@@ -1,12 +1,15 @@
 import jwt from "jsonwebtoken";
+import { UserLoginSchema } from "../../schemas/user.js";
 
 function isValidUser(email, pw) {
 	return email == "user@gmail.com" && pw == "1234";
 }
 
 export function signIn(req, res) {
-	const { email, pw } = req.body;
-	if (isValidUser(email, pw)) {
+	try {
+		const { email, pw } = UserLoginSchema.parse(req.body);
+
+		if (!isValidUser(email, pw)) throw new Error("Not a valid user");
 		const token = jwt.sign(
 			{
 				email,
@@ -17,7 +20,7 @@ export function signIn(req, res) {
 			}
 		);
 		res.json({ message: "done", token });
-	} else {
-		res.json({ message: "fail" });
+	} catch (er) {
+		res.json({ message: "fail", error: er.message });
 	}
 }
